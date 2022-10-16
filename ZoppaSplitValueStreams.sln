@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32922.545
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ZoppaSplitValueStreams", "ZoppaSplitValueStreams\ZoppaSplitValueStreams.vbproj", "{786E532B-DE0E-4A5B-8C7E-297F3212E546}"
+EndProject
+Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "ZoppaSplitValueStreamsTest", "ZoppaSplitValueStreamsTest\ZoppaSplitValueStreamsTest.vbproj", "{CE8E313D-E8F0-4496-B9AA-B21B7F528C01}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{786E532B-DE0E-4A5B-8C7E-297F3212E546}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{786E532B-DE0E-4A5B-8C7E-297F3212E546}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{786E532B-DE0E-4A5B-8C7E-297F3212E546}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{786E532B-DE0E-4A5B-8C7E-297F3212E546}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE8E313D-E8F0-4496-B9AA-B21B7F528C01}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE8E313D-E8F0-4496-B9AA-B21B7F528C01}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE8E313D-E8F0-4496-B9AA-B21B7F528C01}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE8E313D-E8F0-4496-B9AA-B21B7F528C01}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {433DBB2E-874E-4307-A9A8-D5D207AC66F9}
+	EndGlobalSection
+EndGlobal
