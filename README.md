@@ -1,0 +1,2 @@
+# ZoppaSplitValueStreams
+CSVのように特定の文字で文字列を分割して値を取得するストリームです
