@@ -55,7 +55,7 @@ Public Module Parameter
         ''' <summary>分割項目を変換します。</summary>
         ''' <param name="input">変換する分割項目。</param>
         ''' <returns>変換後の値。</returns>
-        Public Function Convert(input As ISplitItem) As Object Implements ICvParameter.Convert
+        Public Function Convert(input As IValueItem) As Object Implements ICvParameter.Convert
             Dim inp = input.UnEscape
             Dim ans As New List(Of Byte)()
 
@@ -98,9 +98,9 @@ Public Module Parameter
         ''' <summary>分割項目を変換します。</summary>
         ''' <param name="input">変換する分割項目。</param>
         ''' <returns>変換後の値。</returns>
-        Public Function Convert(input As ISplitItem) As Object Implements ICvParameter.Convert
-            Dim s = input.UnEscape
-            Return If(s <> "", System.Convert.ToByte(s), Nothing)
+        Public Function Convert(input As IValueItem) As Object Implements ICvParameter.Convert
+            Dim inp = input.UnEscape
+            Return If(inp <> "", System.Convert.ToByte(inp), Nothing)
         End Function
     End Class
 
@@ -119,9 +119,9 @@ Public Module Parameter
         ''' <summary>分割項目を変換します。</summary>
         ''' <param name="input">変換する分割項目。</param>
         ''' <returns>変換後の値。</returns>
-        Public Function Convert(input As ISplitItem) As Object Implements ICvParameter.Convert
-            Dim s = input.UnEscape
-            Return If(s <> "", System.Convert.ToBoolean(s), Nothing)
+        Public Function Convert(input As IValueItem) As Object Implements ICvParameter.Convert
+            Dim inp = input.UnEscape
+            Return If(inp <> "", System.Convert.ToBoolean(inp), Nothing)
         End Function
     End Class
 
@@ -140,9 +140,9 @@ Public Module Parameter
         ''' <summary>分割項目を変換します。</summary>
         ''' <param name="input">変換する分割項目。</param>
         ''' <returns>変換後の値。</returns>
-        Public Function Convert(input As ISplitItem) As Object Implements ICvParameter.Convert
-            Dim s = input.UnEscape
-            Return If(s <> "", System.Convert.ToDateTime(s), Nothing)
+        Public Function Convert(input As IValueItem) As Object Implements ICvParameter.Convert
+            Dim inp = input.UnEscape
+            Return If(inp <> "", System.Convert.ToDateTime(inp), Nothing)
         End Function
     End Class
 
@@ -161,9 +161,9 @@ Public Module Parameter
         ''' <summary>分割項目を変換します。</summary>
         ''' <param name="input">変換する分割項目。</param>
         ''' <returns>変換後の値。</returns>
-        Public Function Convert(input As ISplitItem) As Object Implements ICvParameter.Convert
-            Dim s = input.UnEscape
-            Return If(s <> "", System.Convert.ToDecimal(s), Nothing)
+        Public Function Convert(input As IValueItem) As Object Implements ICvParameter.Convert
+            Dim inp = input.UnEscape
+            Return If(inp <> "", System.Convert.ToDecimal(inp), Nothing)
         End Function
     End Class
 
@@ -182,9 +182,9 @@ Public Module Parameter
         ''' <summary>分割項目を変換します。</summary>
         ''' <param name="input">変換する分割項目。</param>
         ''' <returns>変換後の値。</returns>
-        Public Function Convert(input As ISplitItem) As Object Implements ICvParameter.Convert
-            Dim s = input.UnEscape
-            Return If(s <> "", System.Convert.ToDouble(s), Nothing)
+        Public Function Convert(input As IValueItem) As Object Implements ICvParameter.Convert
+            Dim inp = input.UnEscape
+            Return If(inp <> "", System.Convert.ToDouble(inp), Nothing)
         End Function
     End Class
 
@@ -203,9 +203,9 @@ Public Module Parameter
         ''' <summary>分割項目を変換します。</summary>
         ''' <param name="input">変換する分割項目。</param>
         ''' <returns>変換後の値。</returns>
-        Public Function Convert(input As ISplitItem) As Object Implements ICvParameter.Convert
-            Dim s = input.UnEscape
-            Return If(s <> "", System.Convert.ToInt16(s), Nothing)
+        Public Function Convert(input As IValueItem) As Object Implements ICvParameter.Convert
+            Dim inp = input.UnEscape
+            Return If(inp <> "", System.Convert.ToInt16(inp), Nothing)
         End Function
     End Class
 
@@ -224,9 +224,9 @@ Public Module Parameter
         ''' <summary>分割項目を変換します。</summary>
         ''' <param name="input">変換する分割項目。</param>
         ''' <returns>変換後の値。</returns>
-        Public Function Convert(input As ISplitItem) As Object Implements ICvParameter.Convert
-            Dim s = input.UnEscape
-            Return If(s <> "", System.Convert.ToInt32(s), Nothing)
+        Public Function Convert(input As IValueItem) As Object Implements ICvParameter.Convert
+            Dim inp = input.UnEscape
+            Return If(inp <> "", System.Convert.ToInt32(inp), Nothing)
         End Function
     End Class
 
@@ -245,9 +245,9 @@ Public Module Parameter
         ''' <summary>分割項目を変換します。</summary>
         ''' <param name="input">変換する分割項目。</param>
         ''' <returns>変換後の値。</returns>
-        Public Function Convert(input As ISplitItem) As Object Implements ICvParameter.Convert
-            Dim s = input.UnEscape
-            Return If(s <> "", System.Convert.ToInt64(s), Nothing)
+        Public Function Convert(input As IValueItem) As Object Implements ICvParameter.Convert
+            Dim inp = input.UnEscape
+            Return If(inp <> "", System.Convert.ToInt64(inp), Nothing)
         End Function
     End Class
 
@@ -266,9 +266,9 @@ Public Module Parameter
         ''' <summary>分割項目を変換します。</summary>
         ''' <param name="input">変換する分割項目。</param>
         ''' <returns>変換後の値。</returns>
-        Public Function Convert(input As ISplitItem) As Object Implements ICvParameter.Convert
-            Dim s = input.UnEscape
-            Return If(s <> "", System.Convert.ToSingle(s), Nothing)
+        Public Function Convert(input As IValueItem) As Object Implements ICvParameter.Convert
+            Dim inp = input.UnEscape
+            Return If(inp <> "", System.Convert.ToInt64(inp), Nothing)
         End Function
     End Class
 
@@ -287,7 +287,7 @@ Public Module Parameter
         ''' <summary>分割項目を変換します。</summary>
         ''' <param name="input">変換する分割項目。</param>
         ''' <returns>変換後の値。</returns>
-        Public Function Convert(input As ISplitItem) As Object Implements ICvParameter.Convert
+        Public Function Convert(input As IValueItem) As Object Implements ICvParameter.Convert
             Return input.UnEscape
         End Function
     End Class
@@ -307,9 +307,9 @@ Public Module Parameter
         ''' <summary>分割項目を変換します。</summary>
         ''' <param name="input">変換する分割項目。</param>
         ''' <returns>変換後の値。</returns>
-        Public Function Convert(input As ISplitItem) As Object Implements ICvParameter.Convert
-            Dim s = input.UnEscape
-            Return If(s <> "", TimeSpan.Parse(s), Nothing)
+        Public Function Convert(input As IValueItem) As Object Implements ICvParameter.Convert
+            Dim inp = input.UnEscape
+            Return If(inp <> "", TimeSpan.Parse(inp), Nothing)
         End Function
     End Class
 

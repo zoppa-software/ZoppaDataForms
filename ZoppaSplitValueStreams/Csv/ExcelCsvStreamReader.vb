@@ -5,7 +5,7 @@ Namespace Csv
 
     ''' <summary>カンマ区切りファイル読み込みストリームです（EXCEL）</summary>
     Public NotInheritable Class ExcelCsvStreamReader
-        Inherits SplitStream(Of ExcelCsvSpliter, ExcelCsvItem)
+        Inherits SplitStreamReader(Of ExcelCsvSpliter, ExcelCsvItem)
 
         ''' <summary>コンストラクタ。</summary>
         ''' <param name="stream">元となるストリーム。</param>
