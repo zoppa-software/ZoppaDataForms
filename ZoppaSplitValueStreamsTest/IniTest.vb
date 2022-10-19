@@ -51,6 +51,9 @@ Public Class IniTest
 
         Dim a4 = iniFile.GetNoSecssionValue("KEY4")
         Assert.Equal("123""456", a4.UnEscape)
+
+        Dim a5 = iniFile.GetNoSecssionValue("KEY5")
+        Assert.Equal(";はコメント内で無視されます", a5.UnEscape)
     End Sub
 
 End Class

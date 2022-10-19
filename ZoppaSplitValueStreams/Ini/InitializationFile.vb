@@ -2,11 +2,16 @@
 Option Explicit On
 
 Imports System.Text
+Imports System.Xml.Schema
 
 ''' <summary>INIファイル操作機能です。</summary>
 Public NotInheritable Class InitializationFile
 
-    Private mKeyAndValue As New Dictionary(Of Section, Dictionary(Of String, String()))()
+    ''' <summary>セクション別にキーと値を保持するディクショナリ。</summary>
+    Private mKeyAndValue As New Dictionary(Of Section, Dictionary(Of String, KeyAndValue))()
+
+    ''' <summary>INIファイルの各行の情報です。</summary>
+    Private mIniLines As New List(Of IIniLine)()
 
     Private Shared mConverters As New Lazy(Of Dictionary(Of Type, ICvParameter))(
         Function()
@@ -14,28 +19,41 @@ Public NotInheritable Class InitializationFile
         End Function
     )
 
+    ''' <summary>コンストラクタ。</summary>
+    ''' <param name="lines">INIファイルの各行。</param>
     Public Sub New(lines As List(Of String))
         Dim currentSection As New Section()
-        For Each srcln In lines
-            Dim ln = TrimComment(srcln)
-
-            Dim s = ln.Trim()
+        For row As Integer = 0 To lines.Count - 1
+            ' 不要な空白を取り除いた後、セクションかキー／値の何れかか判定する
+            '
+            ' 1. コメント行ならば読み飛ばし
+            ' 2. セクションの場合、カレントセクションを更新
+            ' 3. キー／値の場合、カレントセクションのリストに追加
+            Dim s = If(lines(row), "").Trim()
             Dim kv = New String() {"", "", "", ""}
+            Dim sp As Integer
             If s <> "" Then
-                If IsSection(s) Then
-                    currentSection = New Section(s.Substring(1, s.Length - 2))
-                ElseIf IsKeyPair(s, kv) Then
+                If s(0) = ";"c Then                                                                 ' 1
+                    Me.mIniLines.Add(New EmptyLine(row, lines(row)))
+                ElseIf IsSection(s) Then
+                    currentSection = New Section(s.Substring(1, s.Length - 2), row, lines(row))     ' 2
+                    Me.mIniLines.Add(currentSection)
+                ElseIf IsKeyPair(s, kv, sp) Then
                     If Not Me.mKeyAndValue.ContainsKey(currentSection) Then
-                        Me.mKeyAndValue.Add(currentSection, New Dictionary(Of String, String())())
+                        Me.mKeyAndValue.Add(currentSection, New Dictionary(Of String, KeyAndValue)())
                     End If
                     If Not Me.mKeyAndValue(currentSection).ContainsKey(kv(0)) Then
-                        Me.mKeyAndValue(currentSection).Add(kv(0), New String() {kv(2), kv(3)})
+                        Dim keyAndVal As New KeyAndValue(kv, sp, row, lines(row))
+                        Me.mKeyAndValue(currentSection).Add(kv(0), keyAndVal)                       ' 3
+                        Me.mIniLines.Add(keyAndVal)
                     Else
                         Throw New ArgumentException($"既に同じキーが登録されています。[{currentSection.Name}]{kv(0)}")
                     End If
                 Else
                     Throw New ArgumentException("セクション、キー／値以外の値が与えられました")
                 End If
+            Else
+                Me.mIniLines.Add(New EmptyLine(row, lines(row)))
             End If
         Next
     End Sub
@@ -54,12 +72,18 @@ Public NotInheritable Class InitializationFile
         Return New InitializationFile(lines)
     End Function
 
+    ''' <summary>指定したエンコードで INIファイルを読み込みます。</summary>
+    ''' <param name="iniFilePath">INIファイルのパス。</param>
+    ''' <param name="encode">エンコード（指定がない場合はシステムのデフォルトエンコード）</param>
+    ''' <returns>INIファイルクラス。</returns>
     Public Shared Function Load(iniFilePath As String, Optional encode As Text.Encoding = Nothing) As InitializationFile
+        ' エンコードの指定が無ければデフォルトエンコードを設定
         Dim enc = encode
         If enc Is Nothing Then
             enc = Text.Encoding.Default
         End If
 
+        ' 全ての行を読み込み、インスタンスの生成へ
         Dim fi As New IO.FileInfo(iniFilePath)
         If fi.Exists Then
             Dim lines As New List(Of String)()
@@ -78,22 +102,28 @@ Public NotInheritable Class InitializationFile
         End If
     End Function
 
-    Private Shared Function TrimComment(srcln As String) As String
-        Dim esc As Boolean = False
-        For i As Integer = 0 To srcln.Length - 1
-            If srcln(i) = "\"c AndAlso (i = srcln.Length - 1 OrElse srcln(i + 1) <> "\"c) Then
+    Private Shared Function IsSection(ln As String) As Boolean
+        If ln.Length = 0 OrElse ln(0) <> "["c Then
+            Return False
+        End If
+
+        Dim esc = False
+        Dim sln = ln
+        For i As Integer = 0 To ln.Length - 1
+            If ln(i) = "\"c AndAlso i < ln.Length - 1 AndAlso ln(i + 1) = "\"c Then
+                i += 1
+            ElseIf ln(i) = "\"c Then
                 esc = True
-            ElseIf Not esc AndAlso srcln(i) = ";"c Then
-                Return srcln.Substring(0, i)
+            ElseIf Not esc AndAlso ln(i) = ";"c Then
+                sln = ln.Substring(0, i)
+                Exit For
             ElseIf esc Then
                 esc = False
             End If
         Next
-        Return srcln
-    End Function
 
-    Private Shared Function IsSection(ln As String) As Boolean
-        Return (ln.Length > 2 AndAlso ln(0) = "["c AndAlso ln(ln.Length - 1) = "]"c)
+        sln = sln.Trim()
+        Return (sln.Length > 2 AndAlso sln(0) = "["c AndAlso sln(sln.Length - 1) = "]"c)
     End Function
 
     Private Shared Function IsUnicode(str As String) As Boolean
@@ -112,7 +142,7 @@ Public NotInheritable Class InitializationFile
         End If
     End Function
 
-    Private Shared Function IsKeyPair(ln As String, outKeyAndValue As String()) As Boolean
+    Private Shared Function IsKeyPair(ln As String, outKeyAndValue As String(), ByRef splitPos As Integer) As Boolean
         Dim strs = New Text.StringBuilder() {
             New Text.StringBuilder(),
             New Text.StringBuilder()
@@ -133,12 +163,15 @@ Public NotInheritable Class InitializationFile
                     If index > 1 Then
                         Return False
                     End If
+                    splitPos = i + 1
                 ElseIf ln(i) = """"c OrElse ln(i) = "'"c Then
                     If strs(index).ToString().Trim() = "" Then
                         esc = True
                         endc = ln(i)
                     End If
                     strs(index).Append(ln(i))
+                ElseIf ln(i) = ";"c Then
+                    Exit For
                 Else
                     strs(index).Append(ln(i))
                 End If
@@ -153,98 +186,167 @@ Public NotInheritable Class InitializationFile
             End If
         Next
 
-        For p As Integer = 0 To 1
-            Dim str = strs(p).ToString().Trim()
-            Dim unstr As New StringBuilder()
+        If index = 1 Then
+            For p As Integer = 0 To 1
+                Dim str = strs(p).ToString().Trim()
+                Dim unstr As New StringBuilder()
 
-            esc = (str(0) = """"c OrElse str(0) = "'"c)
-            For i As Integer = If(esc, 1, 0) To str.Length - 1
-                If Not esc Then
-                    If str(i) = "\"c AndAlso i < str.Length - 1 Then
-                        Dim c As Char? = Nothing
-                        Select Case str(i + 1)
-                            Case "\"c
-                                c = "\"c
-                            Case "0"c
-                                c = CChar(vbNullChar)
-                            Case "t"c, "T"c
-                                c = CChar(vbTab)
-                            Case "r"c, "R"c
-                                c = CChar(vbCr)
-                            Case "n"c, "N"c
-                                c = CChar(vbLf)
-                            Case ";"c, "#"c, "="c, ":"c, "\"c
-                                c = str(i + 1)
-                            Case "x"c, "X"c
-                                If i < str.Length - 5 Then
-                                    Try
-                                        Dim num As Integer = 0
-                                        For j As Integer = i + 2 To i + 5
-                                            num = (num << 4) + Convert.ToInt32($"{str(j)}", 16)
-                                        Next
-                                        c = ChrW(num)
-                                        i += 4
-                                    Catch ex As Exception
-                                        ' 空実装
-                                    End Try
-                                End If
-                        End Select
+                esc = (str(0) = """"c OrElse str(0) = "'"c)
+                For i As Integer = If(esc, 1, 0) To str.Length - 1
+                    If Not esc Then
+                        If str(i) = "\"c AndAlso i < str.Length - 1 Then
+                            Dim c As Char? = Nothing
+                            Select Case str(i + 1)
+                                Case "\"c
+                                    c = "\"c
+                                Case "0"c
+                                    c = CChar(vbNullChar)
+                                Case "t"c, "T"c
+                                    c = CChar(vbTab)
+                                Case "r"c, "R"c
+                                    c = CChar(vbCr)
+                                Case "n"c, "N"c
+                                    c = CChar(vbLf)
+                                Case ";"c, "#"c, "="c, ":"c, "\"c
+                                    c = str(i + 1)
+                                Case "x"c, "X"c
+                                    If i < str.Length - 5 Then
+                                        Try
+                                            Dim num As Integer = 0
+                                            For j As Integer = i + 2 To i + 5
+                                                num = (num << 4) + Convert.ToInt32($"{str(j)}", 16)
+                                            Next
+                                            c = ChrW(num)
+                                            i += 4
+                                        Catch ex As Exception
+                                            ' 空実装
+                                        End Try
+                                    End If
+                            End Select
 
-                        If c.HasValue Then
-                            unstr.Append(c)
-                            i += 1
+                            If c.HasValue Then
+                                unstr.Append(c)
+                                i += 1
+                            End If
+                        Else
+                            unstr.Append(str(i))
                         End If
                     Else
-                        unstr.Append(str(i))
+                        If (str(i) = "\"c OrElse str(i) = endc) AndAlso (i < str.Length - 1 AndAlso str(i + 1) = endc) Then
+                            unstr.Append(str(i + 1))
+                            i += 1
+                        ElseIf str(i) = endc Then
+                            esc = False
+                        Else
+                            unstr.Append(str(i))
+                        End If
                     End If
-                Else
-                    If (str(i) = "\"c OrElse str(i) = endc) AndAlso (i < str.Length - 1 AndAlso str(i + 1) = endc) Then
-                        unstr.Append(str(i + 1))
-                        i += 1
-                    ElseIf str(i) = endc Then
-                        esc = False
-                    Else
-                        unstr.Append(str(i))
-                    End If
-                End If
-            Next
+                Next
 
-            outKeyAndValue(p * 2) = unstr.ToString()
-            outKeyAndValue(p * 2 + 1) = str
-        Next
-        Return (index = 1)
+                outKeyAndValue(p * 2) = unstr.ToString()
+                outKeyAndValue(p * 2 + 1) = str
+            Next
+            Return True
+        Else
+            Return False
+        End If
     End Function
 
+    ''' <summary>キーを指定して値を取得します（無名セクション）</summary>
+    ''' <param name="key">キー。</param>
+    ''' <param name="defaultValue">デフォルト値。</param>
+    ''' <returns>取得した値。</returns>
     Public Function GetNoSecssionValue(key As String, Optional defaultValue As String = "") As ValueResult
         Return GetValue(Nothing, key, defaultValue)
     End Function
 
+    ''' <summary>セクションとキーを指定して、値を取得します。</summary>
+    ''' <param name="section">セクション名。</param>
+    ''' <param name="key">キー。</param>
+    ''' <param name="defaultValue">デフォルト値。</param>
+    ''' <returns>取得した値。</returns>
     Public Function GetValue(secssion As String, key As String, Optional defaultValue As String = "") As ValueResult
         Dim sec = If(secssion Is Nothing, New Section(), New Section(secssion))
-        Dim val As String() = Nothing
+        Dim val As KeyAndValue = Nothing
         If Me.mKeyAndValue.ContainsKey(sec) AndAlso Me.mKeyAndValue(sec).TryGetValue(key, val) Then
-            Return New ValueResult(True, val(0), val(1))
+            Return New ValueResult(True, val.ValueUnEscape, val.Value)
         Else
             Return New ValueResult(False, defaultValue, defaultValue)
         End If
     End Function
 
-    Private NotInheritable Class Section
+    Public Sub SetNoSecssionValue(key As String, newValue As String)
+        Me.SetValue(Nothing, key, newValue)
+    End Sub
 
+    Public Sub SetValue(secssion As String, key As String, newValue As String)
+        Dim sec = If(secssion Is Nothing, New Section(), New Section(secssion))
+        Dim val As KeyAndValue = Nothing
+        If Me.mKeyAndValue.ContainsKey(sec) AndAlso Me.mKeyAndValue(sec).TryGetValue(key, val) Then
+            'Return New ValueResult(True, val(0), val(1))
+        Else
+            ' 新規追加
+        End If
+    End Sub
+
+    Private Sub AjustLines()
+        Me.mIniLines.Sort(Function(l, r) l.LineNo.CompareTo(r.LineNo))
+        For i As Integer = 0 To Me.mIniLines.Count - 1
+            Me.mIniLines(i).LineNo = i
+        Next
+    End Sub
+
+    Private Interface IIniLine
+
+        Property LineNo As Double
+
+        ReadOnly Property WriteStr As String
+
+    End Interface
+
+    ''' <summary>セクションを表現します。</summary>
+    Private NotInheritable Class Section
+        Implements IIniLine
+
+        ''' <summary>セクションが無名セクションならば真を返します。</summary>
         Public ReadOnly Property DefaultSection As Boolean
 
+        ''' <summary>セクションの名前を取得します。</summary>
         Public ReadOnly Property Name As String
 
+        Public Property LineNo As Double Implements IIniLine.LineNo
+
+        Public ReadOnly Property WriteStr As String Implements IIniLine.WriteStr
+
+        ''' <summary>コンストラクタ。</summary>
         Public Sub New()
             Me.DefaultSection = True
             Me.Name = ""
         End Sub
 
+        ''' <summary>コンストラクタ。</summary>
+        ''' <param name="secname">セクション名。</param>
         Public Sub New(secname As String)
             Me.DefaultSection = False
             Me.Name = secname
+            Me.LineNo = -1
+            Me.WriteStr = ""
         End Sub
 
+        ''' <summary>コンストラクタ。</summary>
+        ''' <param name="secname">セクション名。</param>
+        ''' <param name="row"></param>
+        ''' <param name="str"></param>
+        Public Sub New(secname As String, row As Integer, str As String)
+            Me.DefaultSection = False
+            Me.Name = secname
+            Me.LineNo = row
+            Me.WriteStr = str
+        End Sub
+
+        ''' <summary>オブジェクトが一致するならば真を返します。</summary>
+        ''' <param name="obj">比較するオブジェクト。</param>
+        ''' <returns>一致するならば真。</returns>
         Public Overrides Function Equals(obj As Object) As Boolean
             If TypeOf obj Is Section Then
                 Dim other = CType(obj, Section)
@@ -254,28 +356,109 @@ Public NotInheritable Class InitializationFile
             End If
         End Function
 
+        ''' <summary>ハッシュコード値を取得します。</summary>
+        ''' <returns>ハッシュコード値。</returns>
         Public Overrides Function GetHashCode() As Integer
             Return Me.DefaultSection.GetHashCode() Xor Me.Name.GetHashCode()
         End Function
 
     End Class
 
+    Private NotInheritable Class EmptyLine
+        Implements IIniLine
+
+        Public Property LineNo As Double Implements IIniLine.LineNo
+
+        Public ReadOnly Property WriteStr As String Implements IIniLine.WriteStr
+
+        Public Sub New(row As Integer, str As String)
+            Me.LineNo = row
+            Me.WriteStr = str
+        End Sub
+    End Class
+
+    Private NotInheritable Class KeyAndValue
+        Implements IIniLine
+
+        Public Property LineNo As Double Implements IIniLine.LineNo
+
+        Public ReadOnly Property WriteStr As String Implements IIniLine.WriteStr
+
+        Private mVUne As String
+
+        Private mVal As String
+
+        Private mBaseStr As String
+
+        Private mSplitPos As Integer
+
+        Public ReadOnly Property ValueUnEscape As String
+            Get
+                Return Me.mVUne
+            End Get
+        End Property
+
+        Public ReadOnly Property Value As String
+            Get
+                Return Me.mVal
+            End Get
+        End Property
+
+        Public Sub New(strs As String(), splitPos As Integer, row As Integer, str As String)
+            Me.mVUne = strs(2)
+            Me.mVal = strs(3)
+            Me.LineNo = row
+            Me.mBaseStr = str
+            Dim pad As Integer = 0
+            For Each c In str.ToCharArray()
+                If Char.IsWhiteSpace(c) Then
+                    pad += 1
+                Else
+                    Exit For
+                End If
+            Next
+            Me.mSplitPos = splitPos + pad
+        End Sub
+
+        Public Sub UpdateValue(newValue As String)
+            Dim keyStr = Me.mBaseStr.Substring(0, Me.mSplitPos)
+            Dim comPos = Me.mSplitPos + Me.mVal.Length
+            Dim comStr = Me.mBaseStr.Substring(comPos, Me.mBaseStr.Length - comPos)
+
+            Me.mVUne = newValue
+        End Sub
+
+    End Class
+
+    ''' <summary>INIファイル取得値を表現します。</summary>
     Public Structure ValueResult
         Implements IValueItem
 
+        ''' <summary>指定したセクション、キーの値があれば真を返します。</summary>
         Public ReadOnly Property IsSome As Boolean
 
+        ''' <summary>エスケープ解除後の文字列。</summary>
         Public ReadOnly Property UnEscape As String Implements IValueItem.UnEscape
 
+        ''' <summary>エスケープ解除前の文字列。</summary>
         Public ReadOnly Property Text As String Implements IValueItem.Text
 
+        ''' <summary>コンストラクタ。</summary>
+        ''' <param name="sm">有効な値ならば真。</param>
+        ''' <param name="unEsc">エスケープ後の文字列。</param>
+        ''' <param name="text">エスケープ前の文字列。</param>
         Public Sub New(sm As Boolean, unEsc As String, text As String)
             Me.IsSome = sm
             Me.UnEscape = unEsc
             Me.Text = text
         End Sub
 
+        ''' <summary>指定の型に指定のコンバータで変換して値を取得します。</summary>
+        ''' <typeparam name="TResult">変換後の型。</typeparam>
+        ''' <typeparam name="TConverter">コンバータ。</typeparam>
+        ''' <returns>変換後の値。</returns>
         Public Function Convert(Of TResult, TConverter As {ICvParameter, New})() As TResult
+            ' コンバータを生成する（既に生成済ならばそれを使う）
             Dim converters = mConverters.Value
             Dim cvKey = GetType(TConverter)
             If Not converters.ContainsKey(cvKey) Then
@@ -284,11 +467,13 @@ Public NotInheritable Class InitializationFile
 
             If Me.IsSome Then
                 Try
+                    ' 有効な値ならば変換して返す
                     Return CType(converters(cvKey).Convert(Me), TResult)
                 Catch ex As Exception
                     Throw New InvalidCastException("値の型変換に失敗しました")
                 End Try
             Else
+                ' 無効な値ならば Nothingを返す
                 Return Nothing
             End If
         End Function
