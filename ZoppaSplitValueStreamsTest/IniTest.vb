@@ -1,4 +1,5 @@
 ﻿Imports System
+Imports System.IO
 Imports System.Text
 Imports Xunit
 Imports ZoppaSplitValueStreams
@@ -54,6 +55,27 @@ Public Class IniTest
 
         Dim a5 = iniFile.GetNoSecssionValue("KEY5")
         Assert.Equal(";はコメント内で無視されます", a5.UnEscape)
+    End Sub
+
+    <Fact>
+    Sub SaveTest()
+        Dim iniFile = InitializationFile.Load("IniFiles\Sample3.ini", Encoding.GetEncoding("shift_jis"))
+        Dim buffer As New StringBuilder()
+        Using sw As New IO.StringWriter(buffer)
+            iniFile.Save(sw)
+        End Using
+        Using sr As New StreamReader("IniFiles\Sample3.ini", Encoding.GetEncoding("shift_jis"))
+            Assert.Equal(sr.ReadToEnd().Trim(), buffer.ToString().Trim())
+        End Using
+
+        buffer.Clear()
+        iniFile.SetValue("General", "Editor", " c:\qx\qxw32_changed.exe ")
+        Using sw As New IO.StringWriter(buffer)
+            iniFile.Save(sw)
+        End Using
+        Using sr As New StreamReader("IniFiles\Sample3_ptn1.ini", Encoding.GetEncoding("shift_jis"))
+            Assert.Equal(sr.ReadToEnd().Trim(), buffer.ToString().Trim())
+        End Using
     End Sub
 
 End Class

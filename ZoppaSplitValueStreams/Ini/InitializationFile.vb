@@ -1,6 +1,7 @@
 ﻿Option Strict On
 Option Explicit On
 
+Imports System.IO
 Imports System.Text
 Imports System.Xml.Schema
 
@@ -90,9 +91,7 @@ Public NotInheritable Class InitializationFile
             Using sr As New IO.StreamReader(iniFilePath, enc)
                 Do While sr.Peek() <> -1
                     Dim ln = sr.ReadLine()
-                    If ln.Trim() <> "" Then
-                        lines.Add(ln)
-                    End If
+                    lines.Add(ln)
                 Loop
             End Using
 
@@ -197,8 +196,6 @@ Public NotInheritable Class InitializationFile
                         If str(i) = "\"c AndAlso i < str.Length - 1 Then
                             Dim c As Char? = Nothing
                             Select Case str(i + 1)
-                                Case "\"c
-                                    c = "\"c
                                 Case "0"c
                                     c = CChar(vbNullChar)
                                 Case "t"c, "T"c
@@ -275,6 +272,40 @@ Public NotInheritable Class InitializationFile
         End If
     End Function
 
+    Private Shared Function EscapeValueString(input As String) As String
+        Dim quote = (input.Trim() <> input)
+        Dim buf As New StringBuilder()
+        If quote Then
+            buf.Append(""""c)
+        End If
+        For Each c In input.ToCharArray()
+            Select Case c
+                Case ";"c, "#"c, "="c, ":"c, "\"c
+                    buf.Append("\"c)
+                    buf.Append(c)
+                Case """"c
+                    If quote Then
+                        buf.Append(c)
+                    End If
+                    buf.Append(c)
+                Case CChar(vbNullChar)
+                    buf.Append("\0")
+                Case CChar(vbTab)
+                    buf.Append("\t")
+                Case CChar(vbCr)
+                    buf.Append("\r")
+                Case CChar(vbLf)
+                    buf.Append("\n")
+                Case Else
+                    buf.Append(c)
+            End Select
+        Next
+        If quote Then
+            buf.Append(""""c)
+        End If
+        Return buf.ToString()
+    End Function
+
     Public Sub SetNoSecssionValue(key As String, newValue As String)
         Me.SetValue(Nothing, key, newValue)
     End Sub
@@ -283,10 +314,30 @@ Public NotInheritable Class InitializationFile
         Dim sec = If(secssion Is Nothing, New Section(), New Section(secssion))
         Dim val As KeyAndValue = Nothing
         If Me.mKeyAndValue.ContainsKey(sec) AndAlso Me.mKeyAndValue(sec).TryGetValue(key, val) Then
-            'Return New ValueResult(True, val(0), val(1))
+            val.UpdateValue(newValue)
         Else
             ' 新規追加
         End If
+    End Sub
+
+    Public Sub Save(path As String, Optional encode As Text.Encoding = Nothing)
+        ' エンコードの指定が無ければデフォルトエンコードを設定
+        Dim enc = encode
+        If enc Is Nothing Then
+            enc = Text.Encoding.Default
+        End If
+
+        Using sw As New IO.StreamWriter(path, False, enc)
+            Me.Save(sw)
+        End Using
+    End Sub
+
+    Public Sub Save(sw As TextWriter)
+        Me.AjustLines()
+
+        For Each ln In Me.mIniLines
+            sw.WriteLine(ln.WriteStr)
+        Next
     End Sub
 
     Private Sub AjustLines()
@@ -383,6 +434,10 @@ Public NotInheritable Class InitializationFile
         Public Property LineNo As Double Implements IIniLine.LineNo
 
         Public ReadOnly Property WriteStr As String Implements IIniLine.WriteStr
+            Get
+                Return Me.mBaseStr
+            End Get
+        End Property
 
         Private mVUne As String
 
@@ -426,6 +481,8 @@ Public NotInheritable Class InitializationFile
             Dim comStr = Me.mBaseStr.Substring(comPos, Me.mBaseStr.Length - comPos)
 
             Me.mVUne = newValue
+            Me.mVal = EscapeValueString(newValue)
+            Me.mBaseStr = keyStr & Me.mVal & comStr
         End Sub
 
     End Class
