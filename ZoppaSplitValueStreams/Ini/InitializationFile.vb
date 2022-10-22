@@ -314,9 +314,52 @@ Public NotInheritable Class InitializationFile
         Dim sec = If(secssion Is Nothing, New Section(), New Section(secssion))
         Dim val As KeyAndValue = Nothing
         If Me.mKeyAndValue.ContainsKey(sec) AndAlso Me.mKeyAndValue(sec).TryGetValue(key, val) Then
+            ' 既存の項目をアップデート
             val.UpdateValue(newValue)
         Else
             ' 新規追加
+            '
+            ' 1. 新規セクション追加
+            ' 2. キー／値を追加
+            Dim inspos As Double = -1
+            If Not Me.mKeyAndValue.ContainsKey(sec) Then
+                Me.mKeyAndValue.Add(sec, New Dictionary(Of String, KeyAndValue)())
+                sec.LineNo = Me.mIniLines.Count
+                Me.mIniLines.Add(sec)
+                inspos = Me.mIniLines.Count
+            Else
+                If Me.mKeyAndValue(sec).Count > 0 Then
+                    inspos = Me.mKeyAndValue(sec).Last().Value.LineNo + 0.5
+                Else
+                    inspos = sec.LineNo + 0.5
+                End If
+            End If
+
+            Dim addValue = New KeyAndValue(key, newValue, inspos)
+            Me.mKeyAndValue(sec).Add(key, addValue)
+            Me.mIniLines.Add(addValue)
+
+            Me.AjustLines()
+        End If
+    End Sub
+
+    Public Sub RemoveValue(key As String)
+        Me.RemoveValue(Nothing, key)
+    End Sub
+
+    Public Sub RemoveValue(secssion As String, key As String)
+        Dim sec = If(secssion Is Nothing, New Section(), New Section(secssion))
+        Dim val As KeyAndValue = Nothing
+        If Me.mKeyAndValue.ContainsKey(sec) AndAlso Me.mKeyAndValue(sec).TryGetValue(key, val) Then
+            Me.mKeyAndValue(sec).Remove(key)
+            Me.mIniLines.Remove(val)
+
+            If Me.mKeyAndValue(sec).Count = 0 AndAlso Not sec.DefaultSection Then
+                Me.mKeyAndValue.Remove(sec)
+                Me.mIniLines.Remove(sec)
+            End If
+
+            Me.AjustLines()
         End If
     End Sub
 
@@ -381,7 +424,7 @@ Public NotInheritable Class InitializationFile
             Me.DefaultSection = False
             Me.Name = secname
             Me.LineNo = -1
-            Me.WriteStr = ""
+            Me.WriteStr = $"[{secname}]"
         End Sub
 
         ''' <summary>コンストラクタ。</summary>
@@ -473,6 +516,15 @@ Public NotInheritable Class InitializationFile
                 End If
             Next
             Me.mSplitPos = splitPos + pad
+        End Sub
+
+        Public Sub New(key As String, val As String, lnno As Double)
+            Me.mVUne = val
+            Me.mVal = EscapeValueString(val)
+            Dim keystr = EscapeValueString(key)
+            Me.LineNo = lnno
+            Me.mSplitPos = keystr.Length + 1
+            Me.mBaseStr = $"{keystr}={Me.mVal}"
         End Sub
 
         Public Sub UpdateValue(newValue As String)

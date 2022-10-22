@@ -76,6 +76,26 @@ Public Class IniTest
         Using sr As New StreamReader("IniFiles\Sample3_ptn1.ini", Encoding.GetEncoding("shift_jis"))
             Assert.Equal(sr.ReadToEnd().Trim(), buffer.ToString().Trim())
         End Using
+
+        buffer.Clear()
+        iniFile.SetValue("HotKey2", "Key", "Ctrl+Alt+Z")
+        iniFile.SetValue("HotKey2", "Editor", "notepad.exe")
+        Using sw As New IO.StringWriter(buffer)
+            iniFile.Save(sw)
+        End Using
+        Using sr As New StreamReader("IniFiles\Sample3_ptn2.ini", Encoding.GetEncoding("shift_jis"))
+            Assert.Equal(sr.ReadToEnd().Trim(), buffer.ToString().Trim())
+        End Using
+
+        buffer.Clear()
+        iniFile.RemoveValue("HotKey1", "Key")
+        iniFile.RemoveValue("HotKey1", "QxMacro")
+        Using sw As New IO.StringWriter(buffer)
+            iniFile.Save(sw)
+        End Using
+        Using sr As New StreamReader("IniFiles\Sample3_ptn3.ini", Encoding.GetEncoding("shift_jis"))
+            Assert.Equal(sr.ReadToEnd().Trim(), buffer.ToString().Trim())
+        End Using
     End Sub
 
 End Class
