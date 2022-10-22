@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <RootNamespace>ZoppaSplitValueStreamsTest</RootNamespace>
+    <RootNamespace>ZoppaDataFormsTest</RootNamespace>
     <TargetFramework>net6.0</TargetFramework>
 
     <IsPackable>false</IsPackable>
@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ZoppaSplitValueStreams\ZoppaSplitValueStreams.vbproj" />
+    <ProjectReference Include="..\ZoppaDataForms\ZoppaDataForms.vbproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,8 +1,8 @@
 Imports System
 Imports System.Text
 Imports Xunit
-Imports ZoppaSplitValueStreams
-Imports ZoppaSplitValueStreams.Csv
+Imports ZoppaDataForms
+Imports ZoppaDataForms.Csv
 
 Public Class CsvTest
 

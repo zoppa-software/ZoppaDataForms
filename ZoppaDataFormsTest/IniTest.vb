@@ -2,7 +2,7 @@
 Imports System.IO
 Imports System.Text
 Imports Xunit
-Imports ZoppaSplitValueStreams
+Imports ZoppaDataForms
 
 Public Class IniTest
 

@@ -1,7 +1,7 @@
 ﻿Option Strict On
 Option Explicit On
+
 Imports System.Reflection
-Imports ZoppaSplitValueStreams.Csv
 
 ''' <summary>読み込みストリーム（共通）</summary>
 Public MustInherit Class SplitStreamReader(Of TSpliter As {Spliter(Of TItem), New}, TItem As {ISplitItem, New})
