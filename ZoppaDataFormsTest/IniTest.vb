@@ -3,6 +3,7 @@ Imports System.IO
 Imports System.Text
 Imports Xunit
 Imports ZoppaDataForms
+Imports ZoppaDataForms.Ini
 
 Public Class IniTest
 
@@ -106,6 +107,9 @@ Public Class IniTest
 
         Dim a2 = iniFile.GetValue("Sample", "Keyに特殊文字;")
         Assert.Equal("値も""特殊文字""", a2.UnEscape)
+
+        Dim a3 = iniFile.GetValue("Sample", "integer")
+        Assert.Equal(123, a3.Convert(Of Integer)())
     End Sub
 
 End Class

@@ -41,7 +41,7 @@ Public Module Parameter
     Public ReadOnly CvTime As ICvParameter = New TimeConverter()
 
     ''' <summary>バイト配列に変換します。</summary>
-    Private NotInheritable Class BinaryConverter
+    Public NotInheritable Class BinaryConverter
         Implements ICvParameter
 
         ''' <summary>変換する型を取得します。</summary>
@@ -84,7 +84,7 @@ Public Module Parameter
     End Class
 
     ''' <summary>バイトに変換します。</summary>
-    Private NotInheritable Class ByteConverter
+    Public NotInheritable Class ByteConverter
         Implements ICvParameter
 
         ''' <summary>変換する型を取得します。</summary>
@@ -105,7 +105,7 @@ Public Module Parameter
     End Class
 
     ''' <summary>真偽値に変換します。</summary>
-    Private NotInheritable Class BooleanConverter
+    Public NotInheritable Class BooleanConverter
         Implements ICvParameter
 
         ''' <summary>変換する型を取得します。</summary>
@@ -126,7 +126,7 @@ Public Module Parameter
     End Class
 
     ''' <summary>日付型に変換します。</summary>
-    Private NotInheritable Class DateConverter
+    Public NotInheritable Class DateConverter
         Implements ICvParameter
 
         ''' <summary>変換する型を取得します。</summary>
@@ -147,7 +147,7 @@ Public Module Parameter
     End Class
 
     ''' <summary>Decimal値に変換します。</summary>
-    Private NotInheritable Class DecimalConverter
+    Public NotInheritable Class DecimalConverter
         Implements ICvParameter
 
         ''' <summary>変換する型を取得します。</summary>
@@ -168,7 +168,7 @@ Public Module Parameter
     End Class
 
     ''' <summary>Double値に変換します。</summary>
-    Private NotInheritable Class DoubleConverter
+    Public NotInheritable Class DoubleConverter
         Implements ICvParameter
 
         ''' <summary>変換する型を取得します。</summary>
@@ -189,7 +189,7 @@ Public Module Parameter
     End Class
 
     ''' <summary>Short値に変換します。</summary>
-    Private NotInheritable Class ShortConverter
+    Public NotInheritable Class ShortConverter
         Implements ICvParameter
 
         ''' <summary>変換する型を取得します。</summary>
@@ -210,7 +210,7 @@ Public Module Parameter
     End Class
 
     ''' <summary>Integer値に変換します。</summary>
-    Private NotInheritable Class IntegerConverter
+    Public NotInheritable Class IntegerConverter
         Implements ICvParameter
 
         ''' <summary>変換する型を取得します。</summary>
@@ -231,7 +231,7 @@ Public Module Parameter
     End Class
 
     ''' <summary>Long値に変換します。</summary>
-    Private NotInheritable Class LongConverter
+    Public NotInheritable Class LongConverter
         Implements ICvParameter
 
         ''' <summary>変換する型を取得します。</summary>
@@ -252,7 +252,7 @@ Public Module Parameter
     End Class
 
     ''' <summary>Single値に変換します。</summary>
-    Private NotInheritable Class SingleConverter
+    Public NotInheritable Class SingleConverter
         Implements ICvParameter
 
         ''' <summary>変換する型を取得します。</summary>
@@ -268,12 +268,12 @@ Public Module Parameter
         ''' <returns>変換後の値。</returns>
         Public Function Convert(input As IValueItem) As Object Implements ICvParameter.Convert
             Dim inp = input.UnEscape
-            Return If(inp <> "", System.Convert.ToInt64(inp), Nothing)
+            Return If(inp <> "", System.Convert.ToSingle(inp), Nothing)
         End Function
     End Class
 
     ''' <summary>文字列に変換します。</summary>
-    Private NotInheritable Class StringConverter
+    Public NotInheritable Class StringConverter
         Implements ICvParameter
 
         ''' <summary>変換する型を取得します。</summary>
@@ -293,7 +293,7 @@ Public Module Parameter
     End Class
 
     ''' <summary>時間型に変換します。</summary>
-    Private NotInheritable Class TimeConverter
+    Public NotInheritable Class TimeConverter
         Implements ICvParameter
 
         ''' <summary>変換する型を取得します。</summary>
