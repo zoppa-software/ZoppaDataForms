@@ -23,6 +23,7 @@
 CSVファイルの読み込みは `"` の扱いについて、シンプルに `"` を検出したらエスケープを開始する仕様（`CsvStreamReader`）と EXCELに合わせた仕様（`ExcelCsvStreamReader`）の二種類を用意しています。  
 EXCELのCSVファイルの読み込みルールについて明確にはわからなかったため、私の理解した範囲で適用しています。  
 #### 使い方
+多量のデータの読み込み、書き込みを行うためにCSVファイルはストリームで行います。  
 
 ### **INIファイル**
 #### 実装仕様
@@ -30,7 +31,63 @@ INIファイルの基本的な仕様には従っていますが、一部の振�
 * コメントは `;` 以降の文字列となります。セクションの定義に `;` は使えません、値内で `;` を使用する場合は `\` でエスケープするか、`"`、`'` で囲むようにしてください
 * 値の前端、後端を `"`、`'` で囲むことで、その中で特殊文字（`=`など）をエスケープせずに使用できます。ただし、 `"`で囲まれた範囲内で`"`を使用する場合は`\`でエスケープするか二つ続けて記述します。または`'`で前後を囲むようにしてください（`'`も同じです）  
 #### 使い方
+`InitializationFile`クラスを生成して `GetValue`（無名セクションは`GetNoSecssionValue`）で値を読み込み、`SetValue`（無名セクションは`SetNoSecssionValue`）で値を設定します。  
+以下は空の`InitializationFile`クラスを生成して、値を設定していく例です。  
+``` vb
+Dim iniFile As New InitializationFile()
+iniFile.SetNoSecssionValue("Number", "100") ' 無名セクション
+iniFile.SetValue("LOCAL", "Number", "200")
+iniFile.SetValue("OTHER", "Number", "300")
+iniFile.SetNoSecssionValue("Name", "A") ' 無名セクション
+iniFile.SetValue("LOCAL", "Name", "B")
+iniFile.SetValue("OTHER", "Name", "C")
+```
+作成したINIファイルは `Save` メソッドでストリームに保存します。  
+``` vb
+Dim buffer As New StringBuilder()
+Using sw As New IO.StringWriter(buffer)
+    iniFile.Save(sw)
+End Using
+```
+取得した文字列は以下のようになります。  
+```
+Number=100
+Name=A
+[LOCAL]
+Number=200
+Name=B
+[OTHER]
+Number=300
+Name=C
+```
+  
+次に値を取得する例です。  
+``` vb
+Dim iniFile = InitializationFile.Load("IniFiles\Sample1.ini", Encoding.GetEncoding("shift_jis"))
+Dim a1 = iniFile.GetNoSecssionValue("KEY1")
+Assert.True(a1.IsSome)
+Assert.Equal("     ", a1.UnEscape)
 
+Dim a2 = iniFile.GetNoSecssionValue("KEY2", "XXX")
+Assert.False(a2.IsSome)
+Assert.Equal("XXX", a2.UnEscape)
+
+Dim a3 = iniFile.GetValue("SECTION1", "KEY1")
+Assert.True(a3.IsSome)
+Assert.Equal("\keydata1", a3.UnEscape)
+
+Dim a4 = iniFile.GetValue("SECTION1", "KEY2")
+Assert.True(a4.IsSome)
+Assert.Equal("key=data2", a4.UnEscape)
+
+Dim a5 = iniFile.GetValue("SECTION2", "KEYA")
+Assert.True(a5.IsSome)
+Assert.Equal("keydataA", a5.UnEscape)
+
+Dim a6 = iniFile.GetValue("SPECIAL", "KEYZ")
+Assert.True(a6.IsSome)
+Assert.Equal(";#=:烏" & vbCrLf & "改行テスト" & vbNullChar, a6.UnEscape)
+```
 
 ## インストール
 ソースをビルドして `ZoppaDataForms.dll` ファイルを生成して参照してください。  

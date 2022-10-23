@@ -112,4 +112,29 @@ Public Class IniTest
         Assert.Equal(123, a3.Convert(Of Integer)())
     End Sub
 
+
+    <Fact>
+    Sub CreateTest()
+        Dim iniFile As New InitializationFile()
+        iniFile.SetNoSecssionValue("Number", "100") ' 無名セクション
+        iniFile.SetValue("LOCAL", "Number", "200")
+        iniFile.SetValue("OTHER", "Number", "300")
+        iniFile.SetNoSecssionValue("Name", "A") ' 無名セクション
+        iniFile.SetValue("LOCAL", "Name", "B")
+        iniFile.SetValue("OTHER", "Name", "C")
+
+        Dim buffer As New StringBuilder()
+        Using sw As New IO.StringWriter(buffer)
+            iniFile.Save(sw)
+        End Using
+        Assert.Equal("Number=100
+Name=A
+[LOCAL]
+Number=200
+Name=B
+[OTHER]
+Number=300
+Name=C", buffer.ToString().Trim())
+    End Sub
+
 End Class

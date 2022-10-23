@@ -23,8 +23,13 @@ Namespace Ini
         )
 
         ''' <summary>コンストラクタ。</summary>
+        Public Sub New()
+
+        End Sub
+
+        ''' <summary>コンストラクタ。</summary>
         ''' <param name="lines">INIファイルの各行。</param>
-        Public Sub New(lines As List(Of String))
+        Private Sub New(lines As List(Of String))
             Dim currentSection As New Section()
             For row As Integer = 0 To lines.Count - 1
                 ' 不要な空白を取り除いた後、セクションかキー／値の何れかか判定する
