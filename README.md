@@ -61,7 +61,21 @@ Number=300
 Name=C
 ```
   
-次に値を取得する例です。  
+次に値を取得する例です。以下のの INIファイルを読み込みます。  
+```
+KEY1 = "     "
+
+[SECTION1]
+KEY1=\\keydata1 ; コメント
+KEY2=key\=data2
+
+[SECTION2]
+KEYA=keydataA
+
+[SPECIAL]
+KEYZ=\;\#\=\:\x70CF\r\n改行テスト\0
+```
+読み込み処理は以下のとおりです。  
 ``` vb
 Dim iniFile = InitializationFile.Load("IniFiles\Sample1.ini", Encoding.GetEncoding("shift_jis"))
 Dim a1 = iniFile.GetNoSecssionValue("KEY1")
