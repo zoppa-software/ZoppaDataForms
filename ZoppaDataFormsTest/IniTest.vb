@@ -98,4 +98,14 @@ Public Class IniTest
         End Using
     End Sub
 
+    <Fact>
+    Sub BlockTest()
+        Dim iniFile = InitializationFile.Load("IniFiles\Sample4.ini", Encoding.GetEncoding("shift_jis"))
+        Dim a1 = iniFile.GetValue("Sample", "Keyに特殊文字=")
+        Assert.Equal("値も'特殊文字'", a1.UnEscape)
+
+        Dim a2 = iniFile.GetValue("Sample", "Keyに特殊文字;")
+        Assert.Equal("値も""特殊文字""", a2.UnEscape)
+    End Sub
+
 End Class

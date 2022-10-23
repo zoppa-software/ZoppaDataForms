@@ -229,10 +229,10 @@ Public NotInheritable Class InitializationFile
                             unstr.Append(str(i))
                         End If
                     Else
-                        If (str(i) = "\"c OrElse str(i) = endc) AndAlso (i < str.Length - 1 AndAlso str(i + 1) = endc) Then
+                        If (str(i) = "\"c OrElse str(i) = str(0)) AndAlso (i < str.Length - 1 AndAlso str(i + 1) = str(0)) Then
                             unstr.Append(str(i + 1))
                             i += 1
-                        ElseIf str(i) = endc Then
+                        ElseIf str(i) = str(0) Then
                             esc = False
                         Else
                             unstr.Append(str(i))
