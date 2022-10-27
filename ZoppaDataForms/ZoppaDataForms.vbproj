@@ -6,7 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Tsv\" />
     <Folder Include="SpaceSv\" />
     <Folder Include="SemicolonSv\" />
   </ItemGroup>

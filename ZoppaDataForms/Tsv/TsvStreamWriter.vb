@@ -1,10 +1,10 @@
 ﻿Option Strict On
 Option Explicit On
 
-Namespace Csv
+Namespace Tsv
 
-    ''' <summary>CSV形式でストリーム出力するためのクラスです。</summary>
-    Public NotInheritable Class CsvStreamWriter
+    ''' <summary>TSV形式でストリーム出力するためのクラスです。</summary>
+    Public NotInheritable Class TsvStreamWriter
         Inherits SplitStreamWriter
 
         ''' <summary>コンストラクタ。</summary>
@@ -81,18 +81,12 @@ Namespace Csv
         Protected Overrides Function Escape(str As String) As String
             ' エスケープが必要か判定
             Dim needEsc As Boolean = False
-            If str.Length > 0 AndAlso Char.IsWhiteSpace(str(0)) Then
-                needEsc = True
-            ElseIf str.Length > 0 AndAlso Char.IsWhiteSpace(str(str.Length - 1)) Then
-                needEsc = True
-            Else
-                For Each c In str
-                    If c = ","c OrElse c = """"c OrElse c = ChrW(10) Then
-                        needEsc = True
-                        Exit For
-                    End If
-                Next
-            End If
+            For Each c In str
+                If c = """"c OrElse c = ChrW(10) Then
+                    needEsc = True
+                    Exit For
+                End If
+            Next
 
             ' エスケープが必要ならばエスケープして返す
             If needEsc Then

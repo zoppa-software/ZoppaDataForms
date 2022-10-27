@@ -117,7 +117,7 @@ Public MustInherit Class SplitStreamReader(Of TSpliter As {Spliter(Of TItem), Ne
     ''' <typeparam name="TResult">変換後の型。</typeparam>
     ''' <param name="func">変換するためのラムダ式。</param>
     ''' <returns>変換後型の列挙子。</returns>
-    Public Iterator Function SelectCsv(Of TResult)(func As Func(Of Integer, List(Of TItem), TResult)) As IEnumerable(Of TResult)
+    Public Iterator Function [Select](Of TResult)(func As Func(Of Integer, List(Of TItem), TResult)) As IEnumerable(Of TResult)
         For Each item In Me
             Yield func(item.Row, item.Items)
         Next
@@ -127,7 +127,7 @@ Public MustInherit Class SplitStreamReader(Of TSpliter As {Spliter(Of TItem), Ne
     ''' <typeparam name="T">変換後の型。</typeparam>
     ''' <param name="columTypes">コンストラクタの引数。</param>
     ''' <returns>変換後型の列挙子。</returns>
-    Public Iterator Function SelectCsv(Of T)(ParamArray columTypes As ICvParameter()) As IEnumerable(Of T)
+    Public Iterator Function [Select](Of T)(ParamArray columTypes As ICvParameter()) As IEnumerable(Of T)
         ' 引数の配列を作成
         Dim clmTps = columTypes.Select(Function(v) v.ConvertType).ToArray()
 
@@ -147,7 +147,7 @@ Public MustInherit Class SplitStreamReader(Of TSpliter As {Spliter(Of TItem), Ne
     ''' <param name="condition">条件判定するラムダ式。</param>
     ''' <param name="func">変換するためのラムダ式。</param>
     ''' <returns>変換後型の列挙子。</returns>
-    Public Iterator Function WhereCsv(Of TResult)(condition As Func(Of Integer, List(Of TItem), Boolean),
+    Public Iterator Function [Where](Of TResult)(condition As Func(Of Integer, List(Of TItem), Boolean),
                                                   func As Func(Of Integer, List(Of TItem), TResult)) As IEnumerable(Of TResult)
         For Each item In Me
             If condition(item.Row, item.Items) Then
@@ -161,7 +161,7 @@ Public MustInherit Class SplitStreamReader(Of TSpliter As {Spliter(Of TItem), Ne
     ''' <param name="condition">条件判定するラムダ式。</param>
     ''' <param name="columTypes">コンストラクタの引数。</param>
     ''' <returns>変換後型の列挙子。</returns>
-    Public Iterator Function WhereCsv(Of T)(condition As Func(Of Integer, List(Of TItem), Boolean),
+    Public Iterator Function [Where](Of T)(condition As Func(Of Integer, List(Of TItem), Boolean),
                                             ParamArray columTypes As ICvParameter()) As IEnumerable(Of T)
         ' 引数の配列を作成
         Dim clmTps = columTypes.Select(Function(v) v.ConvertType).ToArray()

@@ -62,7 +62,7 @@ Public Class CsvTest
 
         Dim ans As New List(Of Sample1Csv)()
         Using sr As New ExcelCsvStreamReader("CsvFiles\Sample1.csv", Encoding.GetEncoding("shift_jis"))
-            ans = sr.WhereCsv(Of Sample1Csv)(
+            ans = sr.Where(Of Sample1Csv)(
                     Function(row, item) row >= 1,
                     Function(row, item) New Sample1Csv(item(0).UnEscape(), item(1).UnEscape(), item(2).UnEscape())
                 ).ToList()
@@ -123,7 +123,7 @@ Public Class CsvTest
 
         Dim ans As New List(Of Sample1Csv)()
         Using sr As New CsvStreamReader("CsvFiles\Sample1.csv", Encoding.GetEncoding("shift_jis"))
-            ans = sr.WhereCsv(Of Sample1Csv)(
+            ans = sr.Where(Of Sample1Csv)(
                     Function(row, item) row >= 1,
                     Function(row, item) New Sample1Csv(item(0).UnEscape(), item(1).UnEscape(), item(2).UnEscape())
                 ).ToList()
